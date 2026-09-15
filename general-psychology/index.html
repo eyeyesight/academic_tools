@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="將課堂問卷 HTML 回覆整理成可下載的 CSV 總表。">
+  <title>作業回覆總表</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f4f78'/%3E%3Cpath d='M9 8h14v16H9z' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M12 12h8M12 16h8M12 20h5' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef3f7;
+      --surface: #ffffff;
+      --surface-2: #f5f8fa;
+      --ink: #17222d;
+      --muted: #536474;
+      --line: #cfdae3;
+      --primary: #1f4f78;
+      --primary-hover: #173f61;
+      --accent: #dcebf6;
+      --success: #1e6a4d;
+      --success-bg: #e5f4ed;
+      --warning: #8a5413;
+      --warning-bg: #fff2d8;
+      --danger: #a43737;
+      --shadow: 0 12px 30px rgba(28, 52, 73, .08);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+    html { font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; }
+    body { margin: 0; min-width: 320px; background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.55; }
+    button, input, textarea { font: inherit; }
+    button, .file-button { min-height: 46px; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, .file-button:focus-within { outline: 3px solid rgba(31, 79, 120, .28); outline-offset: 2px; }
+
+    .topbar { background: #173b59; color: #fff; }
+    .topbar-inner { width: min(1180px, calc(100% - 32px)); margin: 0 auto; min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 11px; background: rgba(255,255,255,.13); }
+    .brand-mark svg { width: 24px; height: 24px; }
+    h1 { margin: 0; font-size: 1.24rem; letter-spacing: .02em; }
+    .privacy-note { margin: 0; color: #dbe8f2; font-size: .9rem; }
+
+    main { width: min(1180px, calc(100% - 32px)); margin: 28px auto 56px; }
+    .intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+    .intro h2 { margin: 0 0 4px; font-size: clamp(1.45rem, 2vw, 1.9rem); letter-spacing: -.02em; }
+    .intro p { margin: 0; color: var(--muted); }
+    .step-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+    .card-wide { grid-column: 1 / -1; }
+    .card-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .step-number { width: 30px; height: 30px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 50%; background: var(--accent); color: var(--primary); font-weight: 800; }
+    h3 { margin: 0; font-size: 1.05rem; }
+    .helper { margin: -8px 0 16px 40px; color: var(--muted); font-size: .9rem; }
+
+    .upload-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .file-button { position: relative; display: flex; align-items: center; justify-content: center; gap: 9px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); color: var(--ink); padding: 11px 14px; cursor: pointer; font-weight: 700; transition: border-color .16s ease, background .16s ease; }
+    .file-button:hover { border-color: #8ca8bc; background: #edf4f8; }
+    .file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .icon { width: 20px; height: 20px; flex: 0 0 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .import-status { min-height: 48px; margin-top: 14px; padding: 11px 13px; border-radius: 10px; background: var(--surface-2); color: var(--muted); display: flex; align-items: center; gap: 10px; }
+    .import-status.ready { background: var(--success-bg); color: var(--success); }
+    .import-status.error { background: #fbe9e9; color: var(--danger); }
+
+    label.field-label { display: block; margin-bottom: 7px; font-weight: 700; }
+    textarea { width: 100%; min-height: 160px; resize: vertical; padding: 13px 14px; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 11px; line-height: 1.65; }
+    textarea::placeholder { color: #798897; }
+    .question-count { margin: 9px 0 0; color: var(--muted); font-size: .9rem; }
+
+    .run-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .run-copy strong { display: block; }
+    .run-copy span { color: var(--muted); font-size: .9rem; }
+    .primary-button, .secondary-button, .reset-button { border-radius: 11px; padding: 11px 18px; cursor: pointer; font-weight: 800; transition: background .16s ease, border-color .16s ease, opacity .16s ease; }
+    .primary-button, .secondary-button { border: 0; }
+    .primary-button { background: var(--primary); color: #fff; }
+    .primary-button:hover:not(:disabled) { background: var(--primary-hover); }
+    .primary-button:disabled { cursor: not-allowed; opacity: .42; }
+    .secondary-button { display: inline-flex; align-items: center; gap: 8px; background: var(--success); color: #fff; }
+    .secondary-button:hover { background: #16563e; }
+    .summary-actions { display: flex; align-items: center; gap: 9px; }
+    .reset-button { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d8b1b1; background: #fff; color: var(--danger); }
+    .reset-button:hover { border-color: var(--danger); background: #fbe9e9; }
+
+    .reset-dialog { width: min(430px, calc(100% - 32px)); border: 0; border-radius: var(--radius); padding: 0; color: var(--ink); box-shadow: 0 24px 70px rgba(20, 36, 50, .24); }
+    .reset-dialog::backdrop { background: rgba(15, 28, 39, .58); }
+    .reset-dialog form { padding: 24px; }
+    .reset-dialog h2 { margin: 0 0 9px; font-size: 1.3rem; }
+    .reset-dialog p { margin: 0; color: var(--muted); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
+    .dialog-button { min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 9px 15px; background: #fff; color: var(--ink); cursor: pointer; font-weight: 750; }
+    .dialog-button:hover { background: var(--surface-2); }
+    .dialog-button.danger { border-color: var(--danger); background: var(--danger); color: #fff; }
+    .dialog-button.danger:hover { background: #842b2b; }
+
+    .results { display: none; margin-top: 20px; }
+    .results.visible { display: block; }
+    .summary { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .summary-chip { padding: 6px 10px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: .88rem; font-weight: 700; }
+    .summary-chip.good { background: var(--success-bg); color: var(--success); }
+    .summary-chip.warn { background: var(--warning-bg); color: var(--warning); }
+    .summary-spacer { flex: 1; }
+    .table-frame { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    table { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: .92rem; }
+    th, td { min-width: 250px; max-width: 360px; padding: 12px 14px; text-align: left; vertical-align: top; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); white-space: pre-wrap; }
+    th:first-child, td:first-child { min-width: 128px; max-width: 128px; position: sticky; left: 0; z-index: 2; }
+    th { position: sticky; top: 0; z-index: 3; background: #eaf1f6; color: #24394a; font-weight: 800; }
+    th:first-child { z-index: 4; background: #dce8f1; }
+    td:first-child { background: #f7fafc; font-weight: 800; color: var(--primary); }
+    tr:last-child td { border-bottom: 0; }
+    th:last-child, td:last-child { border-right: 0; }
+    .low-confidence td:first-child { box-shadow: inset 4px 0 0 #d49336; }
+    .empty-cell { color: #9a5a19; background: #fff9ed; }
+    .table-note { margin: 10px 2px 0; color: var(--muted); font-size: .86rem; }
+    .error-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: #fbe9e9; color: var(--danger); }
+    .error-box.visible { display: block; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 780px) {
+      .topbar-inner { width: min(100% - 24px, 1180px); min-height: 68px; }
+      .privacy-note { display: none; }
+      main { width: min(100% - 24px, 1180px); margin-top: 20px; }
+      .step-grid { grid-template-columns: 1fr; }
+      .card-wide { grid-column: auto; }
+      .card { padding: 18px; }
+      .upload-actions { grid-template-columns: 1fr; }
+      .run-row { align-items: stretch; flex-direction: column; }
+      .primary-button { width: 100%; }
+      .summary-spacer { display: none; }
+      .summary-actions { width: 100%; }
+      .secondary-button, .reset-button { flex: 1; justify-content: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg>
+        </span>
+        <h1>作業回覆總表</h1>
+      </div>
+      <p class="privacy-note">所有檔案只在這個瀏覽器頁面中處理</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <h2 id="page-title">把每位同學的回覆整理成一張表</h2>
+        <p>匯入繳交檔、貼上題目，確認預覽後下載 CSV。</p>
+      </div>
+    </section>
+
+    <div class="step-grid">
+      <section class="card" aria-labelledby="step1-title">
+        <div class="card-heading"><span class="step-number">1</span><h3 id="step1-title">匯入繳交檔</h3></div>
+        <p class="helper">可選原始 ZIP，或選擇已解壓縮的同名資料夾。</p>
+        <div class="upload-actions">
+          <label class="file-button">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h5l2 2h9v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z"/><path d="M12 17v-5m0 0-2 2m2-2 2 2"/></svg>
+            選擇 ZIP
+            <input id="zip-input" type="file" accept=".zip,application/zip" aria-label="選擇作業 ZIP 壓縮檔">
+          </label>
+          <label class="file-button">
+            <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/><path d="M3 7V5a2 2 0 0 1 2-2h5l2 2h4"/></svg>
+            選擇資料夾
+            <input id="folder-input" type="file" webkitdirectory multiple accept="text/html,.html,.htm" aria-label="選擇已解壓縮的作業資料夾">
+          </label>
+        </div>
+        <div id="import-status" class="import-status" role="status" aria-live="polite">尚未匯入檔案</div>
+      </section>
+
+      <section class="card" aria-labelledby="step2-title">
+        <div class="card-heading"><span class="step-number">2</span><h3 id="step2-title">輸入本次題目</h3></div>
+        <p class="helper">每題一行；可保留「1.」「二、」「第 3 題：」等題號。</p>
+        <label class="field-label" for="questions">問卷題目</label>
+        <textarea id="questions" placeholder="1. 您為什麼想修心理學？&#10;2. 您覺得心理學是什麼？&#10;3. 心理學中的什麼部分讓您覺得有趣？"></textarea>
+        <p id="question-count" class="question-count" aria-live="polite">目前辨識到 0 題</p>
+      </section>
+
+      <section class="card card-wide" aria-labelledby="step3-title">
+        <div class="card-heading"><span class="step-number">3</span><h3 id="step3-title">產生總表</h3></div>
+        <div class="run-row">
+          <div class="run-copy">
+            <strong>解析回覆並先顯示預覽</strong>
+            <span>無法確定題號的回覆會標示為「需檢查」，不會靜默略過。</span>
+          </div>
+          <button id="process-button" class="primary-button" type="button" disabled>整理回覆</button>
+        </div>
+        <div id="error-box" class="error-box" role="alert"></div>
+
+        <div id="results" class="results" aria-live="polite">
+          <div class="summary">
+            <span id="student-summary" class="summary-chip good"></span>
+            <span id="question-summary" class="summary-chip"></span>
+            <span id="review-summary" class="summary-chip warn"></span>
+            <span class="summary-spacer"></span>
+            <div class="summary-actions">
+              <button id="reset-button" class="reset-button" type="button">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.34-5.66L4 8.68"/><path d="M4 4v4.68h4.68"/></svg>
+                重新開始
+              </button>
+              <button id="download-button" class="secondary-button" type="button">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>
+                下載 CSV
+              </button>
+            </div>
+          </div>
+          <div class="table-frame" tabindex="0" aria-label="學生回覆總表預覽，可水平及垂直捲動">
+            <table id="preview-table"></table>
+          </div>
+          <p class="table-note">橘色標記代表題號格式不完整或有缺答，建議下載前先核對原始檔。</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="reset-dialog" class="reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
+    <form method="dialog">
+      <h2 id="reset-title">重新開始並刷新頁面？</h2>
+      <p id="reset-description">這會清除目前匯入的回覆檔、問卷題目與整理結果，然後刷新整個頁面。此動作無法復原。</p>
+      <div class="dialog-actions">
+        <button class="dialog-button" value="cancel">保留目前資料</button>
+        <button class="dialog-button danger" value="reset">清除並刷新</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const state = { files: [], questions: [], rows: [] };
+      const zipInput = document.querySelector('#zip-input');
+      const folderInput = document.querySelector('#folder-input');
+      const questionsInput = document.querySelector('#questions');
+      const questionCount = document.querySelector('#question-count');
+      const importStatus = document.querySelector('#import-status');
+      const processButton = document.querySelector('#process-button');
+      const downloadButton = document.querySelector('#download-button');
+      const resetButton = document.querySelector('#reset-button');
+      const resetDialog = document.querySelector('#reset-dialog');
+      const results = document.querySelector('#results');
+      const errorBox = document.querySelector('#error-box');
+      const previewTable = document.querySelector('#preview-table');
+
+      const chineseDigits = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
+      const fullWidth = '０１２３４５６７８９';
+      const questionCacheKey = 'survey-overall-question-text';
+      const sessionDatabase = openSessionDatabase();
+      let sessionSaveTimer = 0;
+
+      function openSessionDatabase() {
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open('survey-overall', 1);
+          request.onupgradeneeded = () => request.result.createObjectStore('sessions');
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function saveSession() {
+        const database = await sessionDatabase;
+        await new Promise((resolve, reject) => {
+          const transaction = database.transaction('sessions', 'readwrite');
+          transaction.objectStore('sessions').put({
+            files: state.files,
+            questionText: questionsInput.value,
+            importMessage: importStatus.textContent,
+            importType: importStatus.classList.contains('ready') ? 'ready' : importStatus.classList.contains('error') ? 'error' : ''
+          }, 'current');
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+        });
+      }
+
+      function scheduleSessionSave() {
+        clearTimeout(sessionSaveTimer);
+        sessionSaveTimer = setTimeout(() => void saveSession().catch(error => console.warn('無法暫存目前資料', error)), 150);
+      }
+
+      function saveQuestionText() {
+        try { localStorage.setItem(questionCacheKey, questionsInput.value); }
+        catch (error) { console.warn('無法暫存問卷題目', error); }
+      }
+
+      async function restoreSession() {
+        let restoredQuestionText = false;
+        try {
+          const savedQuestionText = localStorage.getItem(questionCacheKey);
+          if (savedQuestionText !== null) {
+            questionsInput.value = savedQuestionText;
+            restoredQuestionText = true;
+          }
+        } catch (error) {
+          console.warn('無法還原問卷題目', error);
+        }
+        try {
+          const database = await sessionDatabase;
+          const saved = await new Promise((resolve, reject) => {
+            const request = database.transaction('sessions').objectStore('sessions').get('current');
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+          });
+          if (!restoredQuestionText && typeof saved?.questionText === 'string') questionsInput.value = saved.questionText;
+          if (Array.isArray(saved?.files) && saved.files.every(file => typeof file?.name === 'string' && typeof file?.text === 'string')) {
+            state.files = saved.files;
+            if (state.files.length) setImportMessage(saved.importMessage || `已匯入 ${state.files.length} 份 HTML 回覆`, saved.importType || 'ready');
+          }
+        } catch (error) {
+          console.warn('無法還原先前資料', error);
+        }
+        refreshReadyState();
+      }
+
+      async function clearSession() {
+        localStorage.removeItem(questionCacheKey);
+        const database = await sessionDatabase;
+        await new Promise((resolve, reject) => {
+          const transaction = database.transaction('sessions', 'readwrite');
+          transaction.objectStore('sessions').delete('current');
+          transaction.oncomplete = resolve;
+          transaction.onerror = () => reject(transaction.error);
+        });
+      }
+
+      function normalizeDigits(text) {
+        return String(text).replace(/[０-９]/g, char => String(fullWidth.indexOf(char)));
+      }
+
+      function chineseNumber(value) {
+        if (!value) return NaN;
+        if (chineseDigits[value]) return chineseDigits[value];
+        if (value.startsWith('十')) return 10 + (chineseDigits[value.slice(1)] || 0);
+        if (value.includes('十')) {
+          const [tens, units] = value.split('十');
+          return (chineseDigits[tens] || 1) * 10 + (chineseDigits[units] || 0);
+        }
+        return NaN;
+      }
+
+      function numberFromToken(token) {
+        const normalized = normalizeDigits(token);
+        return /^\d+$/.test(normalized) ? Number(normalized) : chineseNumber(normalized);
+      }
+
+      function parseQuestionLines(value) {
+        const lines = value.replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean);
+        if (!lines.length) return [];
+        const marker = /^(?:第\s*)?[（(]?([0-9０-９]{1,2}|[一二三四五六七八九十]{1,3})[）)]?\s*(?:題)?\s*(?:[.．、·:：)）\-—]\s*|\s+)(.*)$/;
+        const hasMarkers = lines.some(line => marker.test(line));
+        if (!hasMarkers) return lines;
+
+        const grouped = [];
+        let current = null;
+        for (const line of lines) {
+          const match = line.match(marker);
+          if (match) {
+            if (current) grouped.push(current.trim());
+            current = match[2].trim();
+          } else if (current !== null) {
+            current += ' ' + line;
+          } else {
+            grouped.push(line);
+          }
+        }
+        if (current) grouped.push(current.trim());
+        return grouped.filter(Boolean);
+      }
+
+      function refreshReadyState() {
+        state.questions = parseQuestionLines(questionsInput.value);
+        questionCount.textContent = `目前辨識到 ${state.questions.length} 題`;
+        processButton.disabled = !(state.files.length && state.questions.length);
+        results.classList.remove('visible');
+        errorBox.classList.remove('visible');
+      }
+
+      questionsInput.addEventListener('input', () => {
+        refreshReadyState();
+        saveQuestionText();
+        scheduleSessionSave();
+      });
+
+      folderInput.addEventListener('change', async event => {
+        const htmlFiles = [...event.target.files].filter(file => /\.html?$/i.test(file.name));
+        await loadLooseFiles(htmlFiles, '資料夾');
+        event.target.value = '';
+      });
+
+      zipInput.addEventListener('change', async event => {
+        const file = event.target.files[0];
+        if (!file) return;
+        await loadZipFile(file);
+        event.target.value = '';
+      });
+
+      async function loadZipFile(file) {
+        setImportMessage(`正在讀取 ${file.name}…`);
+        try {
+          state.files = await extractZipHtml(file);
+          if (!state.files.length) throw new Error('壓縮檔中找不到 .html 回覆檔。');
+          setImportMessage(`已從 ${file.name} 匯入 ${state.files.length} 份 HTML 回覆`, 'ready');
+        } catch (error) {
+          state.files = [];
+          setImportMessage(error.message || '無法讀取這個 ZIP 檔。', 'error');
+        }
+        void saveSession().catch(error => console.warn('無法暫存匯入檔案', error));
+        refreshReadyState();
+      }
+
+      function filesFromEntry(entry) {
+        if (entry.isFile) return new Promise((resolve, reject) => entry.file(file => resolve([file]), reject));
+        if (!entry.isDirectory) return Promise.resolve([]);
+        const reader = entry.createReader();
+        return new Promise((resolve, reject) => {
+          const entries = [];
+          const readNext = () => reader.readEntries(batch => {
+            if (!batch.length) {
+              Promise.all(entries.map(filesFromEntry)).then(groups => resolve(groups.flat()), reject);
+              return;
+            }
+            entries.push(...batch);
+            readNext();
+          }, reject);
+          readNext();
+        });
+      }
+
+      async function filesFromDrop(dataTransfer) {
+        const entries = [...dataTransfer.items].map(item => item.webkitGetAsEntry?.()).filter(Boolean);
+        if (entries.length) return (await Promise.all(entries.map(filesFromEntry))).flat();
+        return [...dataTransfer.files];
+      }
+
+      document.addEventListener('dragover', event => {
+        if ([...event.dataTransfer.types].includes('Files')) event.preventDefault();
+      });
+
+      document.addEventListener('drop', async event => {
+        if (![...event.dataTransfer.types].includes('Files')) return;
+        event.preventDefault();
+        const files = await filesFromDrop(event.dataTransfer);
+        const htmlFiles = files.filter(file => /\.html?$/i.test(file.name));
+        if (htmlFiles.length) {
+          await loadLooseFiles(htmlFiles, '資料夾');
+          return;
+        }
+        const zipFile = files.find(file => /\.zip$/i.test(file.name));
+        if (zipFile) {
+          await loadZipFile(zipFile);
+          return;
+        }
+        setImportMessage('拖入的內容中找不到 ZIP 或 HTML 回覆檔。', 'error');
+      });
+
+      async function loadLooseFiles(files, sourceLabel) {
+        if (!files.length) {
+          state.files = [];
+          setImportMessage('選取的資料夾中找不到 .html 回覆檔。', 'error');
+          void saveSession().catch(error => console.warn('無法暫存匯入檔案', error));
+          refreshReadyState();
+          return;
+        }
+        setImportMessage(`正在讀取 ${files.length} 份檔案…`);
+        state.files = await Promise.all(files.map(async file => ({ name: file.name, text: await readHtmlFile(file) })));
+        state.files.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+        setImportMessage(`已從${sourceLabel}匯入 ${state.files.length} 份 HTML 回覆`, 'ready');
+        void saveSession().catch(error => console.warn('無法暫存匯入檔案', error));
+        refreshReadyState();
+      }
+
+      function setImportMessage(message, type = '') {
+        importStatus.textContent = message;
+        importStatus.className = `import-status${type ? ` ${type}` : ''}`;
+      }
+
+      async function readHtmlFile(file) {
+        return decodeHtmlBytes(new Uint8Array(await file.arrayBuffer()));
+      }
+
+      function decodeHtmlBytes(bytes) {
+        const head = new TextDecoder('latin1').decode(bytes.slice(0, 1024));
+        const charsetMatch = head.match(/charset\s*=\s*["']?([\w-]+)/i);
+        const charset = charsetMatch ? charsetMatch[1].toLowerCase() : 'utf-8';
+        try { return new TextDecoder(charset).decode(bytes); }
+        catch { return new TextDecoder('utf-8').decode(bytes); }
+      }
+
+      async function extractZipHtml(file) {
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        const view = new DataView(buffer);
+        let eocd = -1;
+        for (let i = Math.max(0, bytes.length - 65557); i <= bytes.length - 22; i++) {
+          if (view.getUint32(i, true) === 0x06054b50) eocd = i;
+        }
+        if (eocd < 0) throw new Error('這不是有效的 ZIP 檔，或檔案使用了目前不支援的 ZIP64 格式。');
+
+        const entryCount = view.getUint16(eocd + 10, true);
+        const centralOffset = view.getUint32(eocd + 16, true);
+        const entries = [];
+        let cursor = centralOffset;
+        for (let i = 0; i < entryCount; i++) {
+          if (view.getUint32(cursor, true) !== 0x02014b50) throw new Error('ZIP 目錄資料不完整。');
+          const flags = view.getUint16(cursor + 8, true);
+          const method = view.getUint16(cursor + 10, true);
+          const compressedSize = view.getUint32(cursor + 20, true);
+          const filenameLength = view.getUint16(cursor + 28, true);
+          const extraLength = view.getUint16(cursor + 30, true);
+          const commentLength = view.getUint16(cursor + 32, true);
+          const localOffset = view.getUint32(cursor + 42, true);
+          const nameBytes = bytes.slice(cursor + 46, cursor + 46 + filenameLength);
+          const name = new TextDecoder((flags & 0x800) ? 'utf-8' : 'utf-8').decode(nameBytes);
+          if (/\.html?$/i.test(name) && !name.endsWith('/')) entries.push({ name, method, compressedSize, localOffset });
+          cursor += 46 + filenameLength + extraLength + commentLength;
+        }
+
+        const output = [];
+        for (const entry of entries) {
+          if (view.getUint32(entry.localOffset, true) !== 0x04034b50) throw new Error('ZIP 內的檔案標頭不完整。');
+          const filenameLength = view.getUint16(entry.localOffset + 26, true);
+          const extraLength = view.getUint16(entry.localOffset + 28, true);
+          const start = entry.localOffset + 30 + filenameLength + extraLength;
+          const compressed = bytes.slice(start, start + entry.compressedSize);
+          let raw;
+          if (entry.method === 0) raw = compressed;
+          else if (entry.method === 8) raw = await inflateRaw(compressed);
+          else throw new Error(`ZIP 使用不支援的壓縮方式（代碼 ${entry.method}）。請先解壓縮後改選資料夾。`);
+          output.push({ name: entry.name.split('/').pop(), text: decodeHtmlBytes(raw) });
+        }
+        return output.sort((a, b) => a.name.localeCompare(b.name, 'en'));
+      }
+
+      async function inflateRaw(bytes) {
+        if (!('DecompressionStream' in window)) throw new Error('此瀏覽器無法直接解壓 ZIP，請先解壓縮後改選資料夾。');
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+      }
+
+      function serializeNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) return node.nodeValue || '';
+        if (node.nodeType !== Node.ELEMENT_NODE) return '';
+        const tag = node.tagName.toLowerCase();
+        if (tag === 'br') return '\n';
+        if (['script', 'style', 'noscript'].includes(tag)) return '';
+        let text = '';
+        for (const child of node.childNodes) text += serializeNode(child);
+        return ['p', 'li', 'div', 'section', 'article', 'h2', 'h3'].includes(tag) ? `\n${text}\n` : text;
+      }
+
+      function cleanText(text) {
+        return text.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+      }
+
+      function chooseResponseContainer(doc) {
+        const divs = [...doc.body.querySelectorAll('div')];
+        if (!divs.length) return doc.body;
+        return divs.sort((a, b) => scoreContainer(b) - scoreContainer(a))[0];
+      }
+
+      function scoreContainer(element) {
+        const length = cleanText(element.textContent || '').length;
+        const blocks = element.querySelectorAll('p, li').length;
+        return length + Math.min(blocks, 20) * 80;
+      }
+
+      function findMarkers(text, maxQuestion) {
+        const normalized = normalizeDigits(text);
+        const collect = (pattern, boundaryGroup = false) => {
+          const candidates = [];
+          let match;
+          while ((match = pattern.exec(normalized))) {
+            const number = numberFromToken(match[boundaryGroup ? 2 : 1]);
+            const boundaryLength = boundaryGroup ? match[1].length : 0;
+            if (number >= 1 && number <= maxQuestion) candidates.push({ number, index: match.index + boundaryLength, end: pattern.lastIndex });
+          }
+          const sequence = [];
+          let expected = 1;
+          for (const candidate of candidates) {
+            if (candidate.number === expected) {
+              sequence.push(candidate);
+              expected += 1;
+            }
+          }
+          return sequence;
+        };
+        const strict = collect(/^(?:第[ \t]*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3})[）)]?[ \t]*(?:題)?[ \t]*(?:[.．、·:：)）][ \t]*|[-—][ \t]+)(?=\S|$)/gm);
+        if (strict.length === maxQuestion) return strict;
+        const inline = collect(/(^|[\s　])(?:第[ \t]*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3})[）)]?[ \t]*(?:題)?[ \t]*(?:[.．、·:：)）][ \t]*|[-—][ \t]+)(?=\S|$)/gm, true);
+        return inline.length > strict.length ? inline : strict;
+      }
+
+      function stripRepeatedPrompt(answer, question) {
+        const lines = answer.split('\n');
+        if (lines.length < 2) return answer.trim();
+        const comparable = value => value.toLowerCase().replace(/[\s\p{P}\p{S}]/gu, '');
+        const first = comparable(lines[0]);
+        const prompt = comparable(question);
+        const shortenedQuestion = lines[0].length >= 10 && lines[0].length <= 40 && questionCharacterCoverage(lines[0], question) >= 0.6;
+        if (first.length >= 4 && prompt.length >= 4 && (first.includes(prompt) || prompt.includes(first) || questionSimilarity(lines[0], question) >= 0.58 || shortenedQuestion)) lines.shift();
+        return lines.join('\n').trim();
+      }
+
+      function comparableText(value) {
+        return value.normalize('NFKC').toLowerCase().replace(/您/g, '你').replace(/[\s\p{P}\p{S}]/gu, '');
+      }
+
+      function questionPrefix(block) {
+        const withoutLabel = block.replace(/^\s*(?:q(?:uestion)?|題目)\s*[：:]\s*/i, '');
+        const closingBracket = { '【': '】', '[': ']', '［': '］' }[withoutLabel[0]];
+        const closingIndex = closingBracket ? withoutLabel.indexOf(closingBracket, 1) : -1;
+        if (closingIndex > 0) {
+          let prefixEnd = closingIndex + 1;
+          while (prefixEnd < withoutLabel.length && /\s/.test(withoutLabel[prefixEnd])) prefixEnd += 1;
+          return { text: withoutLabel.slice(1, closingIndex).trim(), prefixLength: block.length - withoutLabel.length + prefixEnd };
+        }
+        const questionEnd = withoutLabel.search(/[？?]/);
+        const firstLineEnd = withoutLabel.indexOf('\n');
+        const end = questionEnd >= 0 ? questionEnd + 1 : firstLineEnd >= 0 ? firstLineEnd : withoutLabel.length;
+        let prefixEnd = end;
+        while (prefixEnd < withoutLabel.length && /[】》）)\]」』\s]/.test(withoutLabel[prefixEnd])) prefixEnd += 1;
+        return { text: withoutLabel.slice(0, end).trim(), prefixLength: block.length - withoutLabel.length + prefixEnd };
+      }
+
+      function questionSimilarity(candidate, question) {
+        const left = comparableText(candidate);
+        const right = comparableText(question);
+        if (Math.min(left.length, right.length) < 4) return 0;
+        if (left.includes(right) || right.includes(left)) return Math.min(left.length, right.length) >= 6 ? 1 : 0;
+        const pairs = value => {
+          const output = [];
+          for (let i = 0; i < value.length - 1; i++) output.push(value.slice(i, i + 2));
+          return output;
+        };
+        const available = pairs(right);
+        let common = 0;
+        for (const pair of pairs(left)) {
+          const index = available.indexOf(pair);
+          if (index >= 0) {
+            common += 1;
+            available.splice(index, 1);
+          }
+        }
+        return (2 * common) / Math.max(1, left.length + right.length - 2);
+      }
+
+      function questionCharacterCoverage(candidate, question) {
+        const left = [...comparableText(candidate)];
+        const available = [...comparableText(question)];
+        let common = 0;
+        for (const character of left) {
+          const index = available.indexOf(character);
+          if (index >= 0) {
+            common += 1;
+            available.splice(index, 1);
+          }
+        }
+        return common / Math.max(1, left.length);
+      }
+
+      function responseBlocks(container) {
+        return [...container.querySelectorAll('p, li')]
+          .map(element => {
+            const clone = element.cloneNode(true);
+            clone.querySelectorAll('ol, ul').forEach(list => list.remove());
+            return cleanText(serializeNode(clone));
+          })
+          .filter(Boolean);
+      }
+
+      function splitByRepeatedQuestions(container, questions) {
+        const blocks = responseBlocks(container);
+        if (!blocks.length) return null;
+        const prompts = [];
+        let searchFrom = 0;
+        for (const question of questions) {
+          const found = blocks.findIndex((block, index) => {
+            if (index < searchFrom) return false;
+            return questionSimilarity(questionPrefix(block).text, question) >= 0.58;
+          });
+          if (found < 0) return null;
+          prompts.push({ index: found, ...questionPrefix(blocks[found]) });
+          searchFrom = found + 1;
+        }
+        return questions.map((question, index) => {
+          const prompt = prompts[index];
+          const end = index + 1 < prompts.length ? prompts[index + 1].index : blocks.length;
+          const sameBlockAnswer = blocks[prompt.index].slice(prompt.prefixLength).trim();
+          return [sameBlockAnswer, ...blocks.slice(prompt.index + 1, end)]
+            .filter(block => block && !/^[（(]?例如[：:]/.test(block))
+            .join('\n').replace(/^\s*a\s*[：:]\s*/i, '').trim();
+        });
+      }
+
+      function splitByNumberedBlocks(container, questions) {
+        const questionCount = questions.length;
+        const token = '(?:[0-9０-９]{1,2}|[一二三四五六七八九十]{1,3}|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛])';
+        const marker = new RegExp(`^(${token}(?:\\s*(?:&|＆|和|、|,|，)\\s*${token})*)\\s*(?:[.．:：)）-]\\s*|\\s+)([\\s\\S]*)$`);
+        const compactCircledMarker = /^([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛])\s*([\s\S]*)$/;
+        const compactBareMarker = /^([1-9１-９])(?=[^0-9０-９])([\s\S]+)$/;
+        const answers = Array(questionCount).fill('');
+        const seen = new Set();
+        let current = [];
+        for (const block of responseBlocks(container)) {
+          const match = block.match(marker) || block.match(compactCircledMarker) || block.match(compactBareMarker);
+          const numbers = match ? match[1].split(/\s*(?:&|＆|和|、|,|，)\s*/).map(value => {
+            const plain = value.normalize('NFKC').replace(/[.()]/g, '');
+            return numberFromToken(plain);
+          }) : [];
+          if (numbers.length && numbers.every(number => number >= 1 && number <= questionCount)) {
+            current = numbers;
+            for (const number of current) {
+              answers[number - 1] = match[2].trim();
+              seen.add(number);
+            }
+          } else if (current.length) {
+            for (const number of current) answers[number - 1] = [answers[number - 1], block].filter(Boolean).join('\n');
+          }
+        }
+        if (seen.size < 2) return null;
+        const cleanedAnswers = answers.map((answer, index) => stripRepeatedPrompt(answer, questions[index]));
+        return { answers: cleanedAnswers, confidence: cleanedAnswers.every(Boolean) ? 'high' : 'low' };
+      }
+
+      function parseAnswers(html, questions) {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const container = chooseResponseContainer(doc);
+        const orderedItems = [...container.querySelectorAll('ol li')].filter(li => !li.parentElement.closest('li'));
+        if (orderedItems.length >= questions.length) {
+          return { answers: questions.map((q, i) => stripRepeatedPrompt(cleanText(serializeNode(orderedItems[i])), q)), confidence: orderedItems.length === questions.length ? 'high' : 'medium' };
+        }
+
+        const text = cleanText(serializeNode(container));
+        const markers = findMarkers(text, questions.length);
+        if (markers.length) {
+          const answers = Array(questions.length).fill('');
+          for (let i = 0; i < markers.length; i++) {
+            const marker = markers[i];
+            const end = i + 1 < markers.length ? markers[i + 1].index : text.length;
+            answers[marker.number - 1] = stripRepeatedPrompt(text.slice(marker.end, end).trim(), questions[marker.number - 1]);
+          }
+          return { answers, confidence: markers.length === questions.length ? 'high' : 'low' };
+        }
+
+        const numberedBlocks = splitByNumberedBlocks(container, questions);
+        if (numberedBlocks) return numberedBlocks;
+
+        const promptSplit = splitByRepeatedQuestions(container, questions);
+        if (promptSplit) return { answers: promptSplit, confidence: promptSplit.every(Boolean) ? 'medium' : 'low' };
+
+        const paragraphs = [...container.querySelectorAll(':scope > p, :scope > li')].map(p => cleanText(serializeNode(p))).filter(Boolean);
+        if (paragraphs.length === questions.length) return { answers: paragraphs, confidence: 'medium' };
+        const fallback = Array(questions.length).fill('');
+        fallback[0] = text;
+        return { answers: fallback, confidence: 'low' };
+      }
+
+      function studentIdFromName(name) {
+        const base = name.split(/[\\/]/).pop();
+        return (base.includes('#') ? base.slice(0, base.indexOf('#')) : base.replace(/\.html?$/i, '')).trim();
+      }
+
+      processButton.addEventListener('click', () => {
+        errorBox.classList.remove('visible');
+        try {
+          state.questions = parseQuestionLines(questionsInput.value);
+          if (!state.files.length || !state.questions.length) throw new Error('請先匯入回覆檔並輸入至少一題。');
+          state.rows = state.files.map(file => {
+            const parsed = parseAnswers(file.text, state.questions);
+            const missing = parsed.answers.filter(answer => !answer.trim()).length;
+            return { studentId: studentIdFromName(file.name), fileName: file.name, ...parsed, needsReview: parsed.confidence === 'low' || missing > 0 };
+          });
+          renderResults();
+        } catch (error) {
+          errorBox.textContent = error.message || '整理時發生錯誤。';
+          errorBox.classList.add('visible');
+        }
+      });
+
+      function ordinal(index) {
+        const labels = ['第一題', '第二題', '第三題', '第四題', '第五題', '第六題', '第七題', '第八題', '第九題', '第十題'];
+        return labels[index] || `第${index + 1}題`;
+      }
+
+      function renderResults() {
+        const reviewCount = state.rows.filter(row => row.needsReview).length;
+        document.querySelector('#student-summary').textContent = `${state.rows.length} 位學生`;
+        document.querySelector('#question-summary').textContent = `${state.questions.length} 題`;
+        document.querySelector('#review-summary').textContent = reviewCount ? `${reviewCount} 份需檢查` : '全部成功對應';
+
+        previewTable.replaceChildren();
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['學號', ...state.questions.map((question, index) => `${ordinal(index)}：${question}`)].forEach(label => {
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.textContent = label;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        previewTable.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        state.rows.forEach(row => {
+          const tr = document.createElement('tr');
+          if (row.needsReview) tr.className = 'low-confidence';
+          const values = [row.studentId, ...row.answers];
+          values.forEach((value, index) => {
+            const td = document.createElement('td');
+            td.textContent = value || (index ? '未辨識到回覆' : '未辨識學號');
+            if (!value) td.className = 'empty-cell';
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        previewTable.appendChild(tbody);
+        results.classList.add('visible');
+        results.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
+      }
+
+      downloadButton.addEventListener('click', () => {
+        if (!state.rows.length) return;
+        const headers = ['學號', ...state.questions.map((question, index) => `${ordinal(index)}：${question}`)];
+        const quote = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+        const csv = [headers, ...state.rows.map(row => [row.studentId, ...row.answers])].map(row => row.map(quote).join(',')).join('\r\n');
+        const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const date = new Date().toISOString().slice(0, 10);
+        link.href = url;
+        link.download = `作業回覆總表_${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+
+      resetButton.addEventListener('click', () => resetDialog.showModal());
+
+      resetDialog.addEventListener('close', async () => {
+        if (resetDialog.returnValue !== 'reset') return;
+        try {
+          clearTimeout(sessionSaveTimer);
+          await clearSession();
+          location.reload();
+        } catch (error) {
+          errorBox.textContent = '無法清除暫存資料，頁面尚未刷新。請確認瀏覽器儲存空間設定後再試一次。';
+          errorBox.classList.add('visible');
+        }
+      });
+
+      function registerWebMcp() {
+        const context = document.modelContext;
+        if (!context?.registerTool) return;
+        try {
+          void Promise.resolve(context.registerTool({
+            name: 'set_question_list',
+            title: '設定問卷題目',
+            description: '將問卷題目填入作業回覆總表工具；每個陣列項目代表一題。',
+            inputSchema: {
+              type: 'object',
+              properties: { questions: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } } },
+              required: ['questions'],
+              additionalProperties: false
+            },
+            annotations: { readOnlyHint: false, untrustedContentHint: false },
+            execute(input) {
+              if (!input || !Array.isArray(input.questions) || !input.questions.length || input.questions.some(q => typeof q !== 'string' || !q.trim())) throw new Error('questions 必須是至少包含一個非空字串的陣列。');
+              questionsInput.value = input.questions.map((q, i) => `${i + 1}. ${q.trim()}`).join('\n');
+              refreshReadyState();
+              saveQuestionText();
+              scheduleSessionSave();
+              return { questionCount: state.questions.length };
+            }
+          }));
+        } catch { /* WebMCP 尚未支援時不影響一般使用。 */ }
+      }
+
+      void restoreSession();
+      registerWebMcp();
+    })();
+  </script>
+</body>
+</html>
