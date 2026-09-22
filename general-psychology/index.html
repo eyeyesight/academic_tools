@@ -112,6 +112,20 @@
     .low-confidence td:first-child { box-shadow: inset 4px 0 0 #d49336; }
     .empty-cell { color: #9a5a19; background: #fff9ed; }
     .table-note { margin: 10px 2px 0; color: var(--muted); font-size: .86rem; }
+    .score-distribution { display: none; }
+    .score-distribution.visible { display: block; }
+    .chart-heading-copy { margin: -8px 0 16px 40px; color: var(--muted); font-size: .9rem; }
+    .boxplot-frame { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+    .boxplot-frame svg { display: block; min-width: 100%; height: 390px; }
+    .boxplot-grid { stroke: #d9e3ea; stroke-width: 1; }
+    .boxplot-axis-label { fill: var(--muted); font-size: 12px; text-anchor: end; dominant-baseline: middle; }
+    .boxplot-whisker, .boxplot-cap { stroke: #365b76; stroke-width: 2; }
+    .boxplot-box { fill: #dcebf6; stroke: #1f4f78; stroke-width: 2; }
+    .boxplot-median { stroke: #173b59; stroke-width: 3; }
+    .boxplot-outlier { fill: #c77920; stroke: #fff; stroke-width: 1; }
+    .boxplot-question { fill: var(--ink); font-size: 13px; font-weight: 800; text-anchor: middle; }
+    .boxplot-stat { fill: var(--muted); font-size: 12px; text-anchor: middle; }
+    .boxplot-note { margin: 10px 2px 0; color: var(--muted); font-size: .86rem; }
     .error-box { display: none; margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: #fbe9e9; color: var(--danger); }
     .error-box.visible { display: block; }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
@@ -129,6 +143,61 @@
       .summary-spacer { display: none; }
       .summary-actions { width: 100%; }
       .secondary-button, .reset-button { flex: 1; justify-content: center; }
+    }
+
+    /* Readability refresh: quieter surfaces, clearer questions, denser table. */
+    :root {
+      --bg: #f6f8fa;
+      --surface-2: #f8fafb;
+      --line: #e1e7ec;
+      --shadow: 0 5px 18px rgba(28, 52, 73, .045);
+      --radius: 14px;
+    }
+    body { background: var(--bg); }
+    .topbar { background: rgba(255,255,255,.96); color: var(--ink); border-bottom: 1px solid var(--line); }
+    .topbar-inner { min-height: 66px; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: #fff; }
+    .privacy-note { color: var(--muted); }
+    main { margin-top: 24px; }
+    .intro { margin-bottom: 16px; }
+    .intro h2 { font-size: clamp(1.35rem, 2vw, 1.7rem); }
+    .step-grid { gap: 14px; }
+    .card { padding: 20px; box-shadow: var(--shadow); }
+    .card-heading { margin-bottom: 13px; }
+    .step-number { width: 28px; height: 28px; flex-basis: 28px; border-radius: 8px; font-size: .88rem; }
+    .helper, .chart-heading-copy { margin-left: 38px; }
+    textarea { min-height: 150px; background: #fff; }
+
+    .question-count { margin-top: 8px; font-weight: 700; color: var(--primary); }
+    .question-preview { display: none; margin-top: 11px; max-height: 220px; overflow: auto; gap: 7px; padding-right: 3px; }
+    .question-preview.visible { display: grid; }
+    .question-preview-item { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 9px; align-items: start; padding: 9px 10px; border: 1px solid var(--line); border-radius: 9px; background: #fff; }
+    .question-preview-number { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; background: var(--accent); color: var(--primary); font-size: .78rem; font-weight: 800; }
+    .question-preview-copy { min-width: 0; font-size: .91rem; line-height: 1.55; }
+
+    .summary { margin-bottom: 12px; }
+    .summary-chip { background: #fff; border: 1px solid var(--line); padding: 5px 9px; }
+    .summary-chip.good { border-color: #cbe4d8; }
+    .summary-chip.warn { border-color: #efd8ae; }
+    .table-frame { max-height: min(64vh, 620px); border-radius: 10px; }
+    table { font-size: .9rem; }
+    th, td { min-width: 220px; max-width: 320px; padding: 10px 12px; line-height: 1.55; border-color: #e7ebef; }
+    th:first-child, td:first-child { min-width: 112px; max-width: 112px; }
+    th { background: #f5f7f9; color: #263b4c; }
+    th:first-child { background: #eef3f6; }
+    td:first-child { background: #fafcfd; }
+    tbody tr:nth-child(even) td { background: #fbfcfd; }
+    tbody tr:nth-child(even) td:first-child { background: #f7fafc; }
+    tbody tr:hover td { background: #f1f6fa; }
+    tbody tr:hover td:first-child { background: #eaf2f7; }
+    .table-question-number { display: block; margin-bottom: 4px; color: var(--primary); font-size: .76rem; font-weight: 850; letter-spacing: .02em; }
+    .table-question-copy { display: block; font-weight: 700; line-height: 1.45; }
+    .empty-cell { color: #8a5413 !important; background: #fffaf0 !important; }
+    .low-confidence td:first-child { box-shadow: inset 3px 0 0 #d49336; }
+
+    @media (max-width: 780px) {
+      .helper, .chart-heading-copy { margin-left: 0; }
+      .question-preview { max-height: 180px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -182,6 +251,7 @@
         <label class="field-label" for="questions">問卷題目</label>
         <textarea id="questions" placeholder="1. 您為什麼想修心理學？&#10;2. 您覺得心理學是什麼？&#10;3. 心理學中的什麼部分讓您覺得有趣？"></textarea>
         <p id="question-count" class="question-count" aria-live="polite">目前辨識到 0 題</p>
+        <div id="question-preview" class="question-preview" aria-label="題目預覽"></div>
       </section>
 
       <section class="card card-wide" aria-labelledby="step3-title">
@@ -218,6 +288,13 @@
           <p class="table-note">橘色標記代表題號格式不完整或有缺答，建議下載前先核對原始檔。</p>
         </div>
       </section>
+
+      <section id="score-distribution" class="card card-wide score-distribution" aria-labelledby="score-distribution-title">
+        <div class="card-heading"><span class="step-number">4</span><h3 id="score-distribution-title">分數分布</h3></div>
+        <p class="chart-heading-copy">五點量表各題的回答分布，以及平均數與標準差。</p>
+        <div id="boxplot-frame" class="boxplot-frame" tabindex="0" aria-label="五點量表盒鬚圖，可水平捲動"></div>
+        <p class="boxplot-note">盒體表示第一至第三四分位數，中線為中位數；鬚線延伸至 1.5 IQR 範圍內的最小值與最大值，圓點為離群值。</p>
+      </section>
     </div>
   </main>
 
@@ -241,6 +318,7 @@
       const folderInput = document.querySelector('#folder-input');
       const questionsInput = document.querySelector('#questions');
       const questionCount = document.querySelector('#question-count');
+      const questionPreview = document.querySelector('#question-preview');
       const importStatus = document.querySelector('#import-status');
       const processButton = document.querySelector('#process-button');
       const downloadButton = document.querySelector('#download-button');
@@ -249,6 +327,8 @@
       const results = document.querySelector('#results');
       const errorBox = document.querySelector('#error-box');
       const previewTable = document.querySelector('#preview-table');
+      const scoreDistribution = document.querySelector('#score-distribution');
+      const boxplotFrame = document.querySelector('#boxplot-frame');
 
       const chineseDigits = { '一': 1, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10 };
       const fullWidth = '０１２３４５６７８９';
@@ -353,7 +433,7 @@
       function parseQuestionLines(value) {
         const lines = value.replace(/\r/g, '').split('\n').map(line => line.trim()).filter(Boolean);
         if (!lines.length) return [];
-        const marker = /^(?:第\s*)?[（(]?([0-9０-９]{1,2}|[一二三四五六七八九十]{1,3})[）)]?\s*(?:題)?\s*(?:[.．、·:：)）\-—]\s*|\s+)(.*)$/;
+        const marker = /^(?:第\s*)?[（(]?([0-9０-９]{1,2}|[一二三四五六七八九十]{1,3})[）)]?\s*(?:題)?\s*(?:[.．。、·:：)）\-—]\s*|\s+)(.*)$/;
         const hasMarkers = lines.some(line => marker.test(line));
         if (!hasMarkers) return lines;
 
@@ -374,9 +454,27 @@
         return grouped.filter(Boolean);
       }
 
+      function renderQuestionPreview() {
+        questionPreview.replaceChildren();
+        questionPreview.classList.toggle('visible', Boolean(state.questions.length));
+        state.questions.forEach((question, index) => {
+          const item = document.createElement('div');
+          item.className = 'question-preview-item';
+          const number = document.createElement('span');
+          number.className = 'question-preview-number';
+          number.textContent = String(index + 1);
+          const copy = document.createElement('span');
+          copy.className = 'question-preview-copy';
+          copy.textContent = question;
+          item.append(number, copy);
+          questionPreview.appendChild(item);
+        });
+      }
+
       function refreshReadyState() {
         state.questions = parseQuestionLines(questionsInput.value);
-        questionCount.textContent = `目前辨識到 ${state.questions.length} 題`;
+        questionCount.textContent = state.questions.length ? `已辨識 ${state.questions.length} 題` : '尚未辨識到題目';
+        renderQuestionPreview();
         processButton.disabled = !(state.files.length && state.questions.length);
         results.classList.remove('visible');
         errorBox.classList.remove('visible');
@@ -552,11 +650,38 @@
         if (['script', 'style', 'noscript'].includes(tag)) return '';
         let text = '';
         for (const child of node.childNodes) text += serializeNode(child);
+        if (hasDistinctVisualStyle(node, tag)) text = `◉${text}`;
         return ['p', 'li', 'div', 'section', 'article', 'h2', 'h3'].includes(tag) ? `\n${text}\n` : text;
       }
 
+      function hasDistinctVisualStyle(node, tag) {
+        const style = (node.getAttribute?.('style') || '').toLowerCase();
+        const background = style.match(/background(?:-color)?\s*:\s*([^;]+)/)?.[1];
+        if (background && colorLuminance(background) < 0.78) return true;
+        const foreground = style.match(/(?:^|;)\s*color\s*:\s*([^;]+)/)?.[1];
+        const foregroundLuminance = foreground ? colorLuminance(foreground) : null;
+        return foregroundLuminance !== null && foregroundLuminance >= 0.12 && foregroundLuminance < 0.78;
+      }
+
+      function colorLuminance(value) {
+        const color = value.trim();
+        const shortHex = color.match(/^#([0-9a-f]{3})$/i);
+        const longHex = color.match(/^#([0-9a-f]{6})$/i);
+        const rgb = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+        let channels;
+        if (shortHex) channels = [...shortHex[1]].map(character => parseInt(character + character, 16));
+        else if (longHex) channels = longHex[1].match(/.{2}/g).map(channel => parseInt(channel, 16));
+        else if (rgb) channels = rgb.slice(1, 4).map(Number);
+        else return color === 'black' ? 0 : color === 'white' || color === 'transparent' ? 1 : 0.5;
+        const linear = channels.map(channel => {
+          const normalized = channel / 255;
+          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+      }
+
       function cleanText(text) {
-        return text.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+        return text.replace(/\u00a0/g, ' ').replace(/[\u2028\u2029]/g, '\n').replace(/[ \t]+/g, ' ').replace(/ *\n */g, '\n').replace(/\n{3,}/g, '\n\n').trim();
       }
 
       function chooseResponseContainer(doc) {
@@ -591,9 +716,9 @@
           }
           return sequence;
         };
-        const strict = collect(/^(?:第[ \t]*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3})[）)]?[ \t]*(?:題)?[ \t]*(?:[.．、·:：)）][ \t]*|[-—][ \t]+)(?=\S|$)/gm);
+        const strict = collect(/^(?:第[ \t]*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3})[）)]?[ \t]*(?:題)?[ \t]*(?:[.．。、·:：)）][ \t]*|[-—][ \t]+)(?=\S|$)/gm);
         if (strict.length === maxQuestion) return strict;
-        const inline = collect(/(^|[\s　])(?:第[ \t]*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3})[）)]?[ \t]*(?:題)?[ \t]*(?:[.．、·:：)）][ \t]*|[-—][ \t]+)(?=\S|$)/gm, true);
+        const inline = collect(/(^|[\s　])(?:第[ \t]*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3})[）)]?[ \t]*(?:題)?[ \t]*(?:[.．。、·:：)）][ \t]*|[-—][ \t]+)(?=\S|$)/gm, true);
         return inline.length > strict.length ? inline : strict;
       }
 
@@ -604,7 +729,11 @@
         const first = comparable(lines[0]);
         const prompt = comparable(question);
         const shortenedQuestion = lines[0].length >= 10 && lines[0].length <= 40 && questionCharacterCoverage(lines[0], question) >= 0.6;
-        if (first.length >= 4 && prompt.length >= 4 && (first.includes(prompt) || prompt.includes(first) || questionSimilarity(lines[0], question) >= 0.58 || shortenedQuestion)) lines.shift();
+        if (first.length >= 4 && prompt.length >= 4 && (first.includes(prompt) || prompt.includes(first) || questionSimilarity(lines[0], question) >= 0.58 || shortenedQuestion)) {
+          const selections = [...lines[0].matchAll(/非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意/g)];
+          if (!/[？?]/.test(question) && selections.length === 1) lines[0] = lines[0].slice(selections[0].index).trim();
+          else lines.shift();
+        }
         return lines.join('\n').trim();
       }
 
@@ -666,9 +795,16 @@
       }
 
       function matchedQuestionPrefix(block, question) {
-        if (block.startsWith(question)) return { text: question, prefixLength: question.length };
-        if (comparableText(block) === comparableText(question)) return { text: block, prefixLength: block.length };
-        return questionPrefix(block);
+        const visualPrefix = block.match(/^\s*(?:◉\s*)*/)?.[0] || '';
+        const content = block.slice(visualPrefix.length);
+        if (content.startsWith(question)) return { text: question, prefixLength: visualPrefix.length + question.length };
+        const numbered = content.match(/^\s*(?:第\s*)?[（(]?(?:[0-9０-９]{1,2}|[一二三四五六七八九十]{1,3}|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛])[）)]?\s*(?:題)?\s*(?:[.．。、·:：)）-]\s*|\s+)/);
+        if (numbered && content.slice(numbered[0].length).startsWith(question)) {
+          return { text: question, prefixLength: visualPrefix.length + numbered[0].length + question.length };
+        }
+        if (comparableText(content) === comparableText(question)) return { text: content, prefixLength: block.length };
+        const prefix = questionPrefix(content);
+        return { text: prefix.text, prefixLength: visualPrefix.length + prefix.prefixLength };
       }
 
       function answerAfterPrompt(block, question) {
@@ -676,7 +812,21 @@
         if (questionSimilarity(prompt.text, question) < 0.58) return stripRepeatedPrompt(block, question);
         const lines = block.slice(prompt.prefixLength).trim().split('\n');
         while (lines.length && /^[（(]?例如[：:]/.test(lines[0])) lines.shift();
-        return lines.join('\n').trim();
+        const answer = lines.join('\n').trim();
+        if (answer) return answer;
+        if (!/[？?]/.test(question)) {
+          const selection = block.match(/非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意/);
+          if (selection) return block.slice(selection.index).trim();
+        }
+        return '';
+      }
+
+      function answerAtPromptBlock(block, question) {
+        const answer = answerAfterPrompt(block, question);
+        if (/[？?]/.test(question)) return answer;
+        const selections = [...block.matchAll(/非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意/g)];
+        if (selections.length === 1) return block.slice(selections[0].index).trim();
+        return answer;
       }
 
       function responseBlocks(container) {
@@ -706,30 +856,259 @@
         return questions.map((question, index) => {
           const prompt = prompts[index];
           const end = index + 1 < prompts.length ? prompts[index + 1].index : blocks.length;
-          const sameBlockAnswer = answerAfterPrompt(blocks[prompt.index], question);
+          const sameBlockAnswer = answerAtPromptBlock(blocks[prompt.index], question);
           return [sameBlockAnswer, ...blocks.slice(prompt.index + 1, end)]
             .filter(block => block && !/^[（(]?例如[：:]/.test(block))
             .join('\n').replace(/^\s*a\s*[：:]\s*/i, '').trim();
         });
       }
 
-      function answerFollowingQuestion(container, question, laterQuestions) {
+      function answerFollowingQuestion(container, question, laterQuestions, currentNumber = 0) {
         const blocks = responseBlocks(container);
         const start = blocks.findIndex(block => questionSimilarity(matchedQuestionPrefix(block, question).text, question) >= 0.58);
         if (start < 0) return '';
-        const nextPrompt = blocks.findIndex((block, index) => index > start && laterQuestions.some(laterQuestion => questionSimilarity(matchedQuestionPrefix(block, laterQuestion).text, laterQuestion) >= 0.58));
+        const nextPrompt = blocks.findIndex((block, index) => index > start && (
+          laterQuestions.some(laterQuestion => questionSimilarity(matchedQuestionPrefix(block, laterQuestion).text, laterQuestion) >= 0.58) ||
+          (currentNumber && leadingQuestionNumber(block) > currentNumber)
+        ));
         const end = nextPrompt >= 0 ? nextPrompt : blocks.length;
-        return [answerAfterPrompt(blocks[start], question), ...blocks.slice(start + 1, end)]
+        return [answerAtPromptBlock(blocks[start], question), ...blocks.slice(start + 1, end)]
           .filter(block => block && !/^[（(]?例如[：:]/.test(block))
           .join('\n').replace(/^\s*a\s*[：:]\s*/i, '').trim();
+      }
+
+      function leadingQuestionNumber(block) {
+        const normalized = normalizeDigits(block);
+        const match = normalized.match(/^\s*(?:◉\s*)*(?:第\s*)?[（(]?([0-9]{1,2}|[一二三四五六七八九十]{1,3}|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛])[）)]?\s*(?:題)?\s*(?:[.．。、·:：)）-]\s*|\s+)/);
+        return match ? numberFromToken(match[1]) : 0;
+      }
+
+      function splitByMatchedQuestions(container, questions) {
+        const blocks = responseBlocks(container);
+        const answers = Array(questions.length).fill('');
+        const matched = Array(questions.length).fill(false);
+        const promptIndexes = Array(questions.length).fill(-1);
+        let searchFrom = 0;
+        for (let index = 0; index < questions.length; index++) {
+          const question = questions[index];
+          const found = blocks.findIndex((block, blockIndex) => blockIndex >= searchFrom && questionSimilarity(matchedQuestionPrefix(block, question).text, question) >= 0.58);
+          if (found < 0) continue;
+          matched[index] = true;
+          promptIndexes[index] = found;
+          searchFrom = found + 1;
+        }
+        for (let index = 0; index < questions.length; index++) {
+          const start = promptIndexes[index];
+          if (start < 0) continue;
+          const nextMatched = promptIndexes.slice(index + 1).find(value => value > start);
+          const numberedBoundary = blocks.findIndex((block, blockIndex) => blockIndex > start && leadingQuestionNumber(block) > index + 1);
+          const boundaries = [nextMatched, numberedBoundary].filter(value => value >= 0);
+          const end = boundaries.length ? Math.min(...boundaries) : blocks.length;
+          answers[index] = [answerAtPromptBlock(blocks[start], questions[index]), ...blocks.slice(start + 1, end)]
+            .filter(block => block && !/^[（(]?例如[：:]/.test(block))
+            .join('\n').replace(/^\s*a\s*[：:]\s*/i, '').trim();
+        }
+        return { answers, matched };
+      }
+
+      const likertScores = [
+        ['非常不同意', '1'],
+        ['既不同意也不反對', '3'],
+        ['非常同意', '5'],
+        ['不同意', '2'],
+        ['同意', '4']
+      ];
+
+      const likertLabelsInOrder = ['非常不同意', '不同意', '既不同意也不反對', '同意', '非常同意'];
+
+      function normalizeMarkerSignature(segment, firstOption = false) {
+        let value = segment;
+        if (firstOption && value.includes('\n')) value = value.slice(value.lastIndexOf('\n') + 1);
+        return value.replace(/[\s：:]/g, '');
+      }
+
+      function oddLikertScores(text) {
+        const normalized = text.normalize('NFKC').replace(/[\ufe0e\ufe0f]/g, '');
+        const scores = [];
+        let searchFrom = 0;
+        while (searchFrom < normalized.length) {
+          const indexes = [];
+          let cursor = normalized.indexOf(likertLabelsInOrder[0], searchFrom);
+          if (cursor < 0) break;
+          indexes.push(cursor);
+          let valid = true;
+          for (let index = 1; index < likertLabelsInOrder.length; index++) {
+            cursor = normalized.indexOf(likertLabelsInOrder[index], cursor + likertLabelsInOrder[index - 1].length);
+            if (cursor < 0) { valid = false; break; }
+            indexes.push(cursor);
+          }
+          if (!valid) break;
+          const signatures = indexes.map((index, optionIndex) => {
+            const start = optionIndex ? indexes[optionIndex - 1] + likertLabelsInOrder[optionIndex - 1].length : searchFrom;
+            return normalizeMarkerSignature(normalized.slice(start, index), optionIndex === 0);
+          });
+          let counts = markerCounts(signatures);
+          const majority = [...counts.entries()].sort((left, right) => right[1] - left[1])[0];
+          const comparableSignatures = majority?.[1] === 3
+            ? signatures.map(signature => signature !== majority[0] && signature.includes(majority[0]) ? majority[0] : signature)
+            : signatures;
+          counts = markerCounts(comparableSignatures);
+          const oddIndex = comparableSignatures.findIndex(signature => counts.get(signature) === 1);
+          const hasFourMatching = [...counts.values()].includes(4);
+          if (hasFourMatching && oddIndex >= 0) scores.push(String(oddIndex + 1));
+          searchFrom = indexes[4] + likertLabelsInOrder[4].length;
+        }
+        return scores;
+      }
+
+      function markerCounts(signatures) {
+        const counts = new Map();
+        signatures.forEach(signature => counts.set(signature, (counts.get(signature) || 0) + 1));
+        return counts;
+      }
+
+      function uniqueLikertScore(text) {
+        const pattern = /非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意/g;
+        const matches = [...text.matchAll(pattern)];
+        if (!matches.length || hasFullLikertScale(text)) return '';
+        const prefix = text.slice(0, matches[0].index).trim().replace(/^(?:answer|回答|a|我)\s*[：:]?\s*/i, '');
+        if (/\p{L}|\p{N}/u.test(prefix)) return '';
+        return scoreForLikertLabel(matches[0][0]);
+      }
+
+      function hasFullLikertScale(text) {
+        let cursor = -1;
+        for (const label of likertLabelsInOrder) {
+          cursor = text.indexOf(label, cursor + 1);
+          if (cursor < 0) return false;
+          cursor += label.length - 1;
+        }
+        return true;
+      }
+
+      function fullLikertScaleCount(text) {
+        const normalized = text.normalize('NFKC').replace(/[\ufe0e\ufe0f]/g, '');
+        let count = 0;
+        let searchFrom = 0;
+        while (searchFrom < normalized.length) {
+          let cursor = normalized.indexOf(likertLabelsInOrder[0], searchFrom);
+          if (cursor < 0) break;
+          let valid = true;
+          for (let index = 1; index < likertLabelsInOrder.length; index++) {
+            cursor = normalized.indexOf(likertLabelsInOrder[index], cursor + likertLabelsInOrder[index - 1].length);
+            if (cursor < 0) { valid = false; break; }
+          }
+          if (!valid) break;
+          count += 1;
+          searchFrom = cursor + likertLabelsInOrder[4].length;
+        }
+        return count;
+      }
+
+      function likertScore(answer, question) {
+        if (/[？?]/.test(question)) return '';
+        let normalized = answer.normalize('NFKC').replace(/[\ufe0e\ufe0f]/g, '').trim();
+        const normalizedQuestion = question.normalize('NFKC').trim();
+        if (normalized.startsWith(normalizedQuestion)) normalized = normalized.slice(normalizedQuestion.length).trim();
+        const firstLine = normalized.split('\n')[0];
+        const firstLineSelections = [...firstLine.matchAll(/非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意/g)];
+        if (firstLineSelections.length === 1) {
+          const prefix = firstLine.slice(0, firstLineSelections[0].index);
+          if (questionSimilarity(prefix, question) >= 0.58 || questionCharacterCoverage(prefix, question) >= 0.65) {
+            return scoreForLikertLabel(firstLineSelections[0][0]);
+          }
+        }
+        const oddScore = oddLikertScores(normalized)[0];
+        if (oddScore) return oddScore;
+        const uniqueScore = uniqueLikertScore(normalized);
+        if (uniqueScore) return uniqueScore;
+        const labels = '非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意';
+        if (/^\s*(?:我)?\s*(?:完全|非常)不認同/.test(normalized)) return '1';
+        if (/^\s*(?:我)?\s*不(?:太)?認同/.test(normalized)) return '2';
+        if (/^\s*(?:我)?\s*(?:非常|完全)認同/.test(normalized)) return '5';
+        if (/^\s*(?:我)?\s*認同/.test(normalized)) return '4';
+        const scaleEnd = normalized.lastIndexOf('非常同意');
+        if (hasFullLikertScale(normalized)) {
+          const afterScale = normalized.slice(scaleEnd + '非常同意'.length);
+          const laterAnswer = uniqueLikertScore(afterScale);
+          if (laterAnswer) return laterAnswer;
+          return '';
+        }
+        const direct = normalized.match(new RegExp(`^\\s*(?:[。．,:：;；]|[-=]>?)*\\s*(?:(?:answer|回答|a)\\s*[：:]\\s*)?(?:[□☐]\\s*)?(?:我)?\\s*(${labels})`, 'i'));
+        if (!direct) return '';
+        return scoreForLikertLabel(direct[1]);
+      }
+
+      function scoreForLikertLabel(label) {
+        const normalized = label.replace(/^既?不同意(?:也)?不反對$/, '既不同意也不反對');
+        return likertScores.find(([option]) => option === normalized)?.[1] || '';
+      }
+
+      function normalizeLikertAnswers(answers, questions) {
+        return answers.map((answer, index) => {
+          const score = likertScore(answer, questions[index]);
+          if (!score) return answer.replace(/◉/g, '').trim();
+          const explanation = likertExplanation(answer, questions[index]).replace(/◉/g, '').trim();
+          return explanation ? `${score}\n${explanation}` : score;
+        });
+      }
+
+      function likertExplanation(answer, question) {
+        let text = stripRepeatedPrompt(answer, question).trim();
+        const normalizedQuestion = question.normalize('NFKC').trim();
+        const normalizedText = text.normalize('NFKC');
+        if (normalizedText.startsWith(normalizedQuestion)) text = normalizedText.slice(normalizedQuestion.length).trim();
+        if (hasFullLikertScale(text)) {
+          const scaleEnd = text.lastIndexOf('非常同意') + '非常同意'.length;
+          text = text.slice(scaleEnd).trim().replace(/^(?:answer|回答|a)\s*[：:]?\s*/i, '');
+        }
+        const lines = text.split('\n');
+        const firstLine = lines[0] || '';
+        const selection = firstLine.match(/非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意/);
+        if (selection) {
+          const prefix = firstLine.slice(0, selection.index).trim().replace(/^(?:answer|回答|a)\s*[：:]?\s*/i, '');
+          if (!/\p{L}|\p{N}/u.test(prefix)) {
+            const sameLineRemainder = firstLine.slice(selection.index + selection[0].length).replace(/^[\s，,。:：;；\-—]+/, '').trim();
+            text = [sameLineRemainder, ...lines.slice(1)].filter(Boolean).join('\n').trim();
+          }
+        }
+        return cleanText(text);
+      }
+
+      function splitLikertSummary(container, questions) {
+        const answers = Array(questions.length).fill('');
+        let assigned = 0;
+        for (const block of responseBlocks(container)) {
+          const match = block.match(/^\s*(非常不同意|既?不同意(?:也)?不反對|非常同意|不同意|同意)\s*[：:]\s*([0-9０-９、,，\s]+)\s*$/);
+          if (!match) continue;
+          const score = scoreForLikertLabel(match[1]);
+          for (const token of match[2].split(/[、,，\s]+/).filter(Boolean)) {
+            const number = Number(token.normalize('NFKC'));
+            if (number >= 1 && number <= questions.length && !/[？?]/.test(questions[number - 1])) {
+              if (!answers[number - 1]) assigned += 1;
+              answers[number - 1] = score;
+            }
+          }
+        }
+        return assigned >= 2 ? answers : null;
+      }
+
+      function splitOddLikertSequence(container, questions) {
+        const text = cleanText(serializeNode(container)).normalize('NFKC').replace(/[\ufe0e\ufe0f]/g, '');
+        const scores = oddLikertScores(text);
+        const likertIndexes = questions.map((question, index) => /[？?]/.test(question) ? -1 : index).filter(index => index >= 0);
+        if (scores.length < 2 || scores.length > likertIndexes.length) return null;
+        const answers = Array(questions.length).fill('');
+        scores.forEach((score, index) => { answers[likertIndexes[index]] = score; });
+        return answers;
       }
 
       function splitByNumberedBlocks(container, questions) {
         const questionCount = questions.length;
         const token = '(?:[0-9０-９]{1,2}|[一二三四五六七八九十]{1,3}|[①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛])';
-        const marker = new RegExp(`^(${token}(?:\\s*(?:&|＆|和|、|,|，)\\s*${token})*)\\s*(?:[.．:：)）-]\\s*|\\s+)([\\s\\S]*)$`);
+        const marker = new RegExp(`^(${token}(?:\\s*(?:&|＆|和|、|,|，)\\s*${token})*)\\s*(?:[.．。:：)）-]\\s*|\\s+)([\\s\\S]*)$`);
         const compactCircledMarker = /^([①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳⒈⒉⒊⒋⒌⒍⒎⒏⒐⒑⒒⒓⒔⒕⒖⒗⒘⒙⒚⒛])\s*([\s\S]*)$/;
-        const compactBareMarker = /^([1-9１-９])(?=[^0-9０-９])([\s\S]+)$/;
+        const compactBareMarker = /^([0-9０-９]{1,2})(?=[^0-9０-９])([\s\S]+)$/;
         const answers = Array(questionCount).fill('');
         const seen = new Set();
         let current = [];
@@ -763,33 +1142,48 @@
           return questionSimilarity(questionPrefix(itemText).text, question) >= 0.58 && !answerAfterPrompt(itemText, question);
         });
         if (orderedItems.length >= questions.length && !orderedItemsArePrompts) {
-          let answers = questions.map((question, index) => answerAfterPrompt(cleanText(serializeNode(orderedItems[index])), question));
+          let answers = questions.map((question, index) => answerAtPromptBlock(cleanText(serializeNode(orderedItems[index])), question));
           if (answers.some(answer => !answer)) {
-            answers = answers.map((answer, index) => answer || answerFollowingQuestion(container, questions[index], questions.slice(index + 1)));
+            answers = answers.map((answer, index) => answer || answerFollowingQuestion(container, questions[index], questions.slice(index + 1), index + 1));
           }
+          answers = normalizeLikertAnswers(answers, questions);
           return { answers, confidence: orderedItems.length === questions.length && answers.every(Boolean) ? 'high' : 'medium' };
         }
 
         const text = cleanText(serializeNode(container));
         const markers = findMarkers(text, questions.length);
+        let markerAnswers = null;
         if (markers.length) {
-          const answers = Array(questions.length).fill('');
+          markerAnswers = Array(questions.length).fill('');
           for (let i = 0; i < markers.length; i++) {
             const marker = markers[i];
             const end = i + 1 < markers.length ? markers[i + 1].index : text.length;
-            answers[marker.number - 1] = stripRepeatedPrompt(text.slice(marker.end, end).trim(), questions[marker.number - 1]);
+            markerAnswers[marker.number - 1] = stripRepeatedPrompt(text.slice(marker.end, end).trim(), questions[marker.number - 1]);
           }
-          return { answers, confidence: markers.length === questions.length ? 'high' : 'low' };
+          if (markers.length === questions.length) {
+            const answers = normalizeLikertAnswers(markerAnswers, questions);
+            return { answers, confidence: 'high' };
+          }
         }
 
         const numberedBlocks = splitByNumberedBlocks(container, questions);
-        if (numberedBlocks) return numberedBlocks;
-
+        const likertSummary = splitLikertSummary(container, questions);
+        const oddLikert = splitOddLikertSequence(container, questions);
         const promptSplit = splitByRepeatedQuestions(container, questions);
-        if (promptSplit) return { answers: promptSplit, confidence: promptSplit.every(Boolean) ? 'medium' : 'low' };
+        if (promptSplit) {
+          const answers = normalizeLikertAnswers(promptSplit, questions);
+          return { answers, confidence: answers.every(Boolean) ? 'medium' : 'low' };
+        }
+
+        const matchedQuestions = splitByMatchedQuestions(container, questions);
+        const answers = questions.map((question, index) => likertSummary?.[index] || oddLikert?.[index] || matchedQuestions.answers[index] || numberedBlocks?.answers[index] || markerAnswers?.[index] || '');
+        if (answers.filter(Boolean).length >= 2) {
+          const normalizedAnswers = normalizeLikertAnswers(answers, questions);
+          return { answers: normalizedAnswers, confidence: normalizedAnswers.every(Boolean) ? 'medium' : 'low' };
+        }
 
         const paragraphs = [...container.querySelectorAll(':scope > p, :scope > li')].map(p => cleanText(serializeNode(p))).filter(Boolean);
-        if (paragraphs.length === questions.length) return { answers: paragraphs, confidence: 'medium' };
+        if (paragraphs.length === questions.length) return { answers: normalizeLikertAnswers(paragraphs, questions), confidence: 'medium' };
         const fallback = Array(questions.length).fill('');
         fallback[0] = text;
         return { answers: fallback, confidence: 'low' };
@@ -808,7 +1202,8 @@
           state.rows = state.files.map(file => {
             const parsed = parseAnswers(file.text, state.questions);
             const missing = parsed.answers.filter(answer => !answer.trim()).length;
-            return { studentId: studentIdFromName(file.name), fileName: file.name, ...parsed, needsReview: parsed.confidence === 'low' || missing > 0 };
+            const unscoredLikert = parsed.answers.some((answer, index) => !/[？?]/.test(state.questions[index]) && !/^[1-5](?:\n|$)/.test(answer.trim()));
+            return { studentId: studentIdFromName(file.name), fileName: file.name, ...parsed, needsReview: parsed.confidence === 'low' || missing > 0 || unscoredLikert };
           });
           renderResults();
         } catch (error) {
@@ -822,6 +1217,145 @@
         return labels[index] || `第${index + 1}題`;
       }
 
+      function numericLikertScore(answer) {
+        const match = String(answer ?? '').match(/^\s*([1-5])(?:[ \t]*\n|[ \t]*$)/);
+        return match ? Number(match[1]) : null;
+      }
+
+      function likertQuestionSeries(rows, questionCount) {
+        const minimumScored = Math.min(3, Math.max(1, rows.length));
+        return Array.from({ length: questionCount }, (_, questionIndex) => {
+          const nonEmpty = rows.filter(row => String(row.answers[questionIndex] ?? '').trim()).length;
+          const values = rows.map(row => numericLikertScore(row.answers[questionIndex])).filter(value => value !== null);
+          return { questionIndex, values, nonEmpty };
+        }).filter(series => series.values.length >= minimumScored && series.values.length / Math.max(1, series.nonEmpty) >= 0.6);
+      }
+
+      function quantile(sortedValues, probability) {
+        if (sortedValues.length === 1) return sortedValues[0];
+        const position = (sortedValues.length - 1) * probability;
+        const lower = Math.floor(position);
+        const fraction = position - lower;
+        return sortedValues[lower] + (sortedValues[Math.min(lower + 1, sortedValues.length - 1)] - sortedValues[lower]) * fraction;
+      }
+
+      function boxPlotStats(values) {
+        const sorted = [...values].sort((left, right) => left - right);
+        const q1 = quantile(sorted, 0.25);
+        const median = quantile(sorted, 0.5);
+        const q3 = quantile(sorted, 0.75);
+        const mean = sorted.reduce((sum, value) => sum + value, 0) / sorted.length;
+        const standardDeviation = Math.sqrt(sorted.reduce((sum, value) => sum + (value - mean) ** 2, 0) / sorted.length);
+        const iqr = q3 - q1;
+        const lowerFence = q1 - 1.5 * iqr;
+        const upperFence = q3 + 1.5 * iqr;
+        const included = sorted.filter(value => value >= lowerFence && value <= upperFence);
+        const lowWhisker = included[0] ?? sorted[0];
+        const highWhisker = included[included.length - 1] ?? sorted[sorted.length - 1];
+        return { q1, median, q3, mean, standardDeviation, lowWhisker, highWhisker, outliers: sorted.filter(value => value < lowWhisker || value > highWhisker) };
+      }
+
+      function renderScoreDistribution() {
+        const series = likertQuestionSeries(state.rows, state.questions.length);
+        boxplotFrame.replaceChildren();
+        scoreDistribution.classList.toggle('visible', Boolean(series.length));
+        if (!series.length) return;
+
+        const namespace = 'http://www.w3.org/2000/svg';
+        const width = Math.max(620, 72 + series.length * 132);
+        const height = 390;
+        const plotLeft = 54;
+        const plotRight = width - 20;
+        const plotTop = 28;
+        const plotBottom = 252;
+        const valueY = value => plotBottom - ((value - 1) / 4) * (plotBottom - plotTop);
+        const svg = document.createElementNS(namespace, 'svg');
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('width', String(width));
+        svg.setAttribute('height', String(height));
+        svg.setAttribute('role', 'img');
+        svg.setAttribute('aria-label', `${series.length} 題五點量表的盒鬚圖`);
+
+        for (let value = 1; value <= 5; value++) {
+          const y = valueY(value);
+          const line = document.createElementNS(namespace, 'line');
+          line.setAttribute('class', 'boxplot-grid');
+          line.setAttribute('x1', String(plotLeft));
+          line.setAttribute('x2', String(plotRight));
+          line.setAttribute('y1', String(y));
+          line.setAttribute('y2', String(y));
+          svg.appendChild(line);
+          const label = document.createElementNS(namespace, 'text');
+          label.setAttribute('class', 'boxplot-axis-label');
+          label.setAttribute('x', String(plotLeft - 13));
+          label.setAttribute('y', String(y));
+          label.textContent = String(value);
+          svg.appendChild(label);
+        }
+
+        series.forEach((item, seriesIndex) => {
+          const stats = boxPlotStats(item.values);
+          const x = plotLeft + (seriesIndex + 0.5) * ((plotRight - plotLeft) / series.length);
+          const whisker = document.createElementNS(namespace, 'line');
+          whisker.setAttribute('class', 'boxplot-whisker');
+          whisker.setAttribute('x1', String(x));
+          whisker.setAttribute('x2', String(x));
+          whisker.setAttribute('y1', String(valueY(stats.highWhisker)));
+          whisker.setAttribute('y2', String(valueY(stats.lowWhisker)));
+          svg.appendChild(whisker);
+          [stats.lowWhisker, stats.highWhisker].forEach(value => {
+            const cap = document.createElementNS(namespace, 'line');
+            cap.setAttribute('class', 'boxplot-cap');
+            cap.setAttribute('x1', String(x - 13));
+            cap.setAttribute('x2', String(x + 13));
+            cap.setAttribute('y1', String(valueY(value)));
+            cap.setAttribute('y2', String(valueY(value)));
+            svg.appendChild(cap);
+          });
+          const box = document.createElementNS(namespace, 'rect');
+          const boxTop = valueY(stats.q3);
+          const boxBottom = valueY(stats.q1);
+          box.setAttribute('class', 'boxplot-box');
+          box.setAttribute('x', String(x - 24));
+          box.setAttribute('y', String(boxTop));
+          box.setAttribute('width', '48');
+          box.setAttribute('height', String(Math.max(2, boxBottom - boxTop)));
+          const title = document.createElementNS(namespace, 'title');
+          title.textContent = `第 ${item.questionIndex + 1} 題：n=${item.values.length}，平均 ${stats.mean.toFixed(2)}，標準差 ${stats.standardDeviation.toFixed(2)}`;
+          box.appendChild(title);
+          svg.appendChild(box);
+          const median = document.createElementNS(namespace, 'line');
+          median.setAttribute('class', 'boxplot-median');
+          median.setAttribute('x1', String(x - 24));
+          median.setAttribute('x2', String(x + 24));
+          median.setAttribute('y1', String(valueY(stats.median)));
+          median.setAttribute('y2', String(valueY(stats.median)));
+          svg.appendChild(median);
+          stats.outliers.forEach((value, outlierIndex) => {
+            const circle = document.createElementNS(namespace, 'circle');
+            circle.setAttribute('class', 'boxplot-outlier');
+            circle.setAttribute('cx', String(x + ((outlierIndex % 5) - 2) * 4));
+            circle.setAttribute('cy', String(valueY(value)));
+            circle.setAttribute('r', '4');
+            svg.appendChild(circle);
+          });
+          const labels = [
+            { y: 284, className: 'boxplot-question', text: `第 ${item.questionIndex + 1} 題` },
+            { y: 309, className: 'boxplot-stat', text: `平均 ${stats.mean.toFixed(2)}` },
+            { y: 329, className: 'boxplot-stat', text: `標準差 ${stats.standardDeviation.toFixed(2)}` }
+          ];
+          labels.forEach(itemLabel => {
+            const label = document.createElementNS(namespace, 'text');
+            label.setAttribute('class', itemLabel.className);
+            label.setAttribute('x', String(x));
+            label.setAttribute('y', String(itemLabel.y));
+            label.textContent = itemLabel.text;
+            svg.appendChild(label);
+          });
+        });
+        boxplotFrame.appendChild(svg);
+      }
+
       function renderResults() {
         const reviewCount = state.rows.filter(row => row.needsReview).length;
         document.querySelector('#student-summary').textContent = `${state.rows.length} 位學生`;
@@ -831,10 +1365,21 @@
         previewTable.replaceChildren();
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
-        ['學號', ...state.questions.map((question, index) => `${ordinal(index)}：${question}`)].forEach(label => {
+        const studentHeader = document.createElement('th');
+        studentHeader.scope = 'col';
+        studentHeader.textContent = '學號';
+        headerRow.appendChild(studentHeader);
+        state.questions.forEach((question, index) => {
           const th = document.createElement('th');
           th.scope = 'col';
-          th.textContent = label;
+          th.title = question;
+          const number = document.createElement('span');
+          number.className = 'table-question-number';
+          number.textContent = ordinal(index);
+          const copy = document.createElement('span');
+          copy.className = 'table-question-copy';
+          copy.textContent = question;
+          th.append(number, copy);
           headerRow.appendChild(th);
         });
         thead.appendChild(headerRow);
@@ -854,6 +1399,7 @@
           tbody.appendChild(tr);
         });
         previewTable.appendChild(tbody);
+        renderScoreDistribution();
         results.classList.add('visible');
         results.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
       }
