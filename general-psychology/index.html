@@ -665,6 +665,20 @@
         return common / Math.max(1, left.length);
       }
 
+      function matchedQuestionPrefix(block, question) {
+        if (block.startsWith(question)) return { text: question, prefixLength: question.length };
+        if (comparableText(block) === comparableText(question)) return { text: block, prefixLength: block.length };
+        return questionPrefix(block);
+      }
+
+      function answerAfterPrompt(block, question) {
+        const prompt = matchedQuestionPrefix(block, question);
+        if (questionSimilarity(prompt.text, question) < 0.58) return stripRepeatedPrompt(block, question);
+        const lines = block.slice(prompt.prefixLength).trim().split('\n');
+        while (lines.length && /^[（(]?例如[：:]/.test(lines[0])) lines.shift();
+        return lines.join('\n').trim();
+      }
+
       function responseBlocks(container) {
         return [...container.querySelectorAll('p, li')]
           .map(element => {
@@ -683,20 +697,31 @@
         for (const question of questions) {
           const found = blocks.findIndex((block, index) => {
             if (index < searchFrom) return false;
-            return questionSimilarity(questionPrefix(block).text, question) >= 0.58;
+            return questionSimilarity(matchedQuestionPrefix(block, question).text, question) >= 0.58;
           });
           if (found < 0) return null;
-          prompts.push({ index: found, ...questionPrefix(blocks[found]) });
+          prompts.push({ index: found, ...matchedQuestionPrefix(blocks[found], question) });
           searchFrom = found + 1;
         }
         return questions.map((question, index) => {
           const prompt = prompts[index];
           const end = index + 1 < prompts.length ? prompts[index + 1].index : blocks.length;
-          const sameBlockAnswer = blocks[prompt.index].slice(prompt.prefixLength).trim();
+          const sameBlockAnswer = answerAfterPrompt(blocks[prompt.index], question);
           return [sameBlockAnswer, ...blocks.slice(prompt.index + 1, end)]
             .filter(block => block && !/^[（(]?例如[：:]/.test(block))
             .join('\n').replace(/^\s*a\s*[：:]\s*/i, '').trim();
         });
+      }
+
+      function answerFollowingQuestion(container, question, laterQuestions) {
+        const blocks = responseBlocks(container);
+        const start = blocks.findIndex(block => questionSimilarity(matchedQuestionPrefix(block, question).text, question) >= 0.58);
+        if (start < 0) return '';
+        const nextPrompt = blocks.findIndex((block, index) => index > start && laterQuestions.some(laterQuestion => questionSimilarity(matchedQuestionPrefix(block, laterQuestion).text, laterQuestion) >= 0.58));
+        const end = nextPrompt >= 0 ? nextPrompt : blocks.length;
+        return [answerAfterPrompt(blocks[start], question), ...blocks.slice(start + 1, end)]
+          .filter(block => block && !/^[（(]?例如[：:]/.test(block))
+          .join('\n').replace(/^\s*a\s*[：:]\s*/i, '').trim();
       }
 
       function splitByNumberedBlocks(container, questions) {
@@ -733,8 +758,16 @@
         const doc = new DOMParser().parseFromString(html, 'text/html');
         const container = chooseResponseContainer(doc);
         const orderedItems = [...container.querySelectorAll('ol li')].filter(li => !li.parentElement.closest('li'));
-        if (orderedItems.length >= questions.length) {
-          return { answers: questions.map((q, i) => stripRepeatedPrompt(cleanText(serializeNode(orderedItems[i])), q)), confidence: orderedItems.length === questions.length ? 'high' : 'medium' };
+        const orderedItemsArePrompts = orderedItems.length >= questions.length && questions.every((question, index) => {
+          const itemText = cleanText(serializeNode(orderedItems[index]));
+          return questionSimilarity(questionPrefix(itemText).text, question) >= 0.58 && !answerAfterPrompt(itemText, question);
+        });
+        if (orderedItems.length >= questions.length && !orderedItemsArePrompts) {
+          let answers = questions.map((question, index) => answerAfterPrompt(cleanText(serializeNode(orderedItems[index])), question));
+          if (answers.some(answer => !answer)) {
+            answers = answers.map((answer, index) => answer || answerFollowingQuestion(container, questions[index], questions.slice(index + 1)));
+          }
+          return { answers, confidence: orderedItems.length === questions.length && answers.every(Boolean) ? 'high' : 'medium' };
         }
 
         const text = cleanText(serializeNode(container));
