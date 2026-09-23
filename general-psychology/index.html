@@ -194,10 +194,20 @@
     .table-question-copy { display: block; font-weight: 700; line-height: 1.45; }
     .empty-cell { color: #8a5413 !important; background: #fffaf0 !important; }
     .low-confidence td:first-child { box-shadow: inset 3px 0 0 #d49336; }
+    .questionnaire-results { display: none; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .questionnaire-results.visible { display: block; }
+    .subsection-heading { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 12px; }
+    .subsection-heading h4 { margin: 0 0 3px; font-size: 1rem; }
+    .subsection-heading p { margin: 0; color: var(--muted); font-size: .86rem; }
+    .score-table th:not(:first-child), .score-table td:not(:first-child) { min-width: 150px; max-width: 230px; text-align: center; }
+    .score-table td:not(:first-child) { font-size: 1rem; font-weight: 800; color: var(--primary); }
+    .score-table .empty-cell { font-size: .82rem; font-weight: 700; }
 
     @media (max-width: 780px) {
       .helper, .chart-heading-copy { margin-left: 0; }
       .question-preview { max-height: 180px; }
+      .subsection-heading { align-items: stretch; flex-direction: column; }
+      .subsection-heading .secondary-button { width: 100%; justify-content: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -278,7 +288,7 @@
               </button>
               <button id="download-button" class="secondary-button" type="button">
                 <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>
-                下載 CSV
+                下載完整 CSV
               </button>
             </div>
           </div>
@@ -286,6 +296,21 @@
             <table id="preview-table"></table>
           </div>
           <p class="table-note">橘色標記代表題號格式不完整或有缺答，建議下載前先核對原始檔。</p>
+          <section id="questionnaire-results" class="questionnaire-results" aria-labelledby="questionnaire-results-title">
+            <div class="subsection-heading">
+              <div>
+                <h4 id="questionnaire-results-title">問卷分數表</h4>
+                <p>無法計分的格子會留空。</p>
+              </div>
+              <button id="download-questionnaire-button" class="secondary-button" type="button">
+                <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg>
+                下載問卷分數 CSV
+              </button>
+            </div>
+            <div class="table-frame" tabindex="0" aria-label="問卷分數表預覽，可水平及垂直捲動">
+              <table id="questionnaire-table" class="score-table"></table>
+            </div>
+          </section>
         </div>
       </section>
 
@@ -322,11 +347,14 @@
       const importStatus = document.querySelector('#import-status');
       const processButton = document.querySelector('#process-button');
       const downloadButton = document.querySelector('#download-button');
+      const downloadQuestionnaireButton = document.querySelector('#download-questionnaire-button');
       const resetButton = document.querySelector('#reset-button');
       const resetDialog = document.querySelector('#reset-dialog');
       const results = document.querySelector('#results');
       const errorBox = document.querySelector('#error-box');
       const previewTable = document.querySelector('#preview-table');
+      const questionnaireResults = document.querySelector('#questionnaire-results');
+      const questionnaireTable = document.querySelector('#questionnaire-table');
       const scoreDistribution = document.querySelector('#score-distribution');
       const boxplotFrame = document.querySelector('#boxplot-frame');
 
@@ -1231,6 +1259,17 @@
         }).filter(series => series.values.length >= minimumScored && series.values.length / Math.max(1, series.nonEmpty) >= 0.6);
       }
 
+      function questionnaireScoreData(rows, questions) {
+        const questionIndexes = likertQuestionSeries(rows, questions.length).map(series => series.questionIndex);
+        return {
+          questionIndexes,
+          records: rows.map(row => ({
+            studentId: row.studentId,
+            scores: questionIndexes.map(questionIndex => numericLikertScore(row.answers[questionIndex]))
+          }))
+        };
+      }
+
       function quantile(sortedValues, probability) {
         if (sortedValues.length === 1) return sortedValues[0];
         const position = (sortedValues.length - 1) * probability;
@@ -1356,6 +1395,57 @@
         boxplotFrame.appendChild(svg);
       }
 
+      function renderQuestionnaireTable() {
+        const data = questionnaireScoreData(state.rows, state.questions);
+        questionnaireTable.replaceChildren();
+        questionnaireResults.classList.toggle('visible', Boolean(data.questionIndexes.length));
+        if (!data.questionIndexes.length) return;
+
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        const idHeader = document.createElement('th');
+        idHeader.scope = 'col';
+        idHeader.textContent = 'ID';
+        headerRow.appendChild(idHeader);
+        data.questionIndexes.forEach(questionIndex => {
+          const question = state.questions[questionIndex];
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.title = question;
+          const number = document.createElement('span');
+          number.className = 'table-question-number';
+          number.textContent = ordinal(questionIndex);
+          const copy = document.createElement('span');
+          copy.className = 'table-question-copy';
+          copy.textContent = question;
+          th.append(number, copy);
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        questionnaireTable.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        data.records.forEach(record => {
+          const tr = document.createElement('tr');
+          const idCell = document.createElement('td');
+          idCell.textContent = record.studentId;
+          tr.appendChild(idCell);
+          record.scores.forEach(score => {
+            const td = document.createElement('td');
+            if (score === null) {
+              td.className = 'empty-cell';
+              td.title = '未能辨識分數';
+              td.setAttribute('aria-label', '未計分');
+            } else {
+              td.textContent = String(score);
+            }
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        questionnaireTable.appendChild(tbody);
+      }
+
       function renderResults() {
         const reviewCount = state.rows.filter(row => row.needsReview).length;
         document.querySelector('#student-summary').textContent = `${state.rows.length} 位學生`;
@@ -1399,26 +1489,42 @@
           tbody.appendChild(tr);
         });
         previewTable.appendChild(tbody);
+        renderQuestionnaireTable();
         renderScoreDistribution();
         results.classList.add('visible');
         results.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'nearest' });
       }
 
-      downloadButton.addEventListener('click', () => {
-        if (!state.rows.length) return;
-        const headers = ['學號', ...state.questions.map((question, index) => `${ordinal(index)}：${question}`)];
-        const quote = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
-        const csv = [headers, ...state.rows.map(row => [row.studentId, ...row.answers])].map(row => row.map(quote).join(',')).join('\r\n');
+      function downloadCsv(filenamePrefix, headers, rows, quoteEveryValue = false) {
+        const csvCell = value => {
+          const text = String(value ?? '');
+          return quoteEveryValue || /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+        };
+        const csv = [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\r\n');
         const blob = new Blob(['\ufeff', csv], { type: 'text/csv;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         const date = new Date().toISOString().slice(0, 10);
         link.href = url;
-        link.download = `作業回覆總表_${date}.csv`;
+        link.download = `${filenamePrefix}_${date}.csv`;
         document.body.appendChild(link);
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      downloadButton.addEventListener('click', () => {
+        if (!state.rows.length) return;
+        const headers = ['學號', ...state.questions.map((question, index) => `${ordinal(index)}：${question}`)];
+        downloadCsv('作業回覆總表', headers, state.rows.map(row => [row.studentId, ...row.answers]), true);
+      });
+
+      downloadQuestionnaireButton.addEventListener('click', () => {
+        const data = questionnaireScoreData(state.rows, state.questions);
+        if (!data.questionIndexes.length) return;
+        const headers = ['ID', ...data.questionIndexes.map(questionIndex => `${ordinal(questionIndex)}：${state.questions[questionIndex]}`)];
+        const rows = data.records.map(record => [record.studentId, ...record.scores.map(score => score ?? '')]);
+        downloadCsv('問卷分數', headers, rows);
       });
 
       resetButton.addEventListener('click', () => resetDialog.showModal());
