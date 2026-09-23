@@ -247,7 +247,7 @@
 
       <section class="card" aria-labelledby="step2-title">
         <div class="card-heading"><span class="step-number">2</span><h3 id="step2-title">輸入本次題目</h3></div>
-        <p class="helper">每題一行；可保留「1.」「二、」「第 3 題：」等題號。</p>
+        <p class="helper">每題一行，可保留「1.」、「二、」和「第 3 題：」等形式的題號。</p>
         <label class="field-label" for="questions">問卷題目</label>
         <textarea id="questions" placeholder="1. 您為什麼想修心理學？&#10;2. 您覺得心理學是什麼？&#10;3. 心理學中的什麼部分讓您覺得有趣？"></textarea>
         <p id="question-count" class="question-count" aria-live="polite">目前辨識到 0 題</p>
@@ -258,8 +258,8 @@
         <div class="card-heading"><span class="step-number">3</span><h3 id="step3-title">產生總表</h3></div>
         <div class="run-row">
           <div class="run-copy">
-            <strong>解析回覆並先顯示預覽</strong>
-            <span>無法確定題號的回覆會標示為「需檢查」，不會靜默略過。</span>
+            <strong>解析問卷回覆並預覽</strong>
+            <span>無法確定題號的回覆會標示為「需檢查」。</span>
           </div>
           <button id="process-button" class="primary-button" type="button" disabled>整理回覆</button>
         </div>
@@ -293,7 +293,7 @@
         <div class="card-heading"><span class="step-number">4</span><h3 id="score-distribution-title">分數分布</h3></div>
         <p class="chart-heading-copy">五點量表各題的回答分布，以及平均數與標準差。</p>
         <div id="boxplot-frame" class="boxplot-frame" tabindex="0" aria-label="五點量表盒鬚圖，可水平捲動"></div>
-        <p class="boxplot-note">盒體表示第一至第三四分位數，中線為中位數；鬚線延伸至 1.5 IQR 範圍內的最小值與最大值，圓點為離群值。</p>
+        <p class="boxplot-note">盒體表示 1st quartile 至 3rd quartile，中線為 median，鬚線延伸至 1.5 IQR 範圍內的 mininum 與 maximum，圓點為 outlier。</p>
       </section>
     </div>
   </main>
